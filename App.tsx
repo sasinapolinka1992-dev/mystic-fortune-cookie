@@ -18,18 +18,15 @@ export const App: React.FC = () => {
 
   // Initial load and Telegram Setup
   useEffect(() => {
-    // Настройка Telegram Web App
     if (window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
       tg.ready();
-      tg.expand(); // Разворачиваем приложение на весь экран в Telegram
+      tg.expand();
       
-      // Подстраиваем верхнюю панель Telegram под наш мистический черный/темно-фиолетовый фон
       try {
         tg.setHeaderColor('#05010a');
         tg.setBackgroundColor('#05010a');
       } catch (e) {
-        // Игнорируем ошибку, если версия Telegram клиента старая
         console.warn('Telegram API method not supported', e);
       }
     }
@@ -41,6 +38,15 @@ export const App: React.FC = () => {
     };
 
     initialize();
+  }, []);
+
+  // Безопасный вызов Haptic Feedback, не роняющий приложение при ошибках
+  const triggerHaptic = useCallback((style: 'light' | 'medium' | 'heavy') => {
+    try {
+      window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.(style);
+    } catch (e) {
+      console.warn('Haptic feedback not supported in this environment', e);
+    }
   }, []);
 
   const handleDrawCard = useCallback(() => {
@@ -56,26 +62,19 @@ export const App: React.FC = () => {
   }, [appState]);
 
   const handleReset = useCallback(async () => {
-    // Немедленно прячем карту и показываем колоду
     setAppState(AppState.IDLE);
-    
-    // Легкая вибрация Haptic Feedback при сбросе
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-    }
+    triggerHaptic('light');
     
     // Генерируем новую карту. Пока пользователь видит колоду, данные уже обновятся!
     const data = await fetchFortune();
     setFortuneData(data);
-  }, []);
+  }, [triggerHaptic]);
 
-  // Haptic Feedback при клике на колоду
   const handleDeckClick = useCallback(() => {
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-    }
+    if (appState !== AppState.IDLE) return;
+    triggerHaptic('medium');
     handleDrawCard();
-  }, [handleDrawCard]);
+  }, [appState, triggerHaptic, handleDrawCard]);
 
   return (
     <div className="relative w-full min-h-[100dvh] magical-bg overflow-hidden font-sans flex items-center justify-center">
