@@ -5,13 +5,36 @@ import TarotDeckVisual from './components/TarotDeckVisual';
 import TarotReveal from './components/TarotReveal';
 import Particles from './components/Particles';
 
+// Объявляем глобальную переменную Telegram для TypeScript
+declare global {
+  interface Window {
+    Telegram?: any;
+  }
+}
+
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.INITIALLOADING);
   const [fortuneData, setFortuneData] = useState<FortuneData | null>(null);
   const [nextFortuneData, setNextFortuneData] = useState<FortuneData | null>(null);
 
-  // Initial load
+  // Initial load and Telegram Setup
   useEffect(() => {
+    // Настройка Telegram Web App
+    if (window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand(); // Разворачиваем приложение на весь экран в Telegram
+      
+      // Подстраиваем верхнюю панель Telegram под наш мистический черный/темно-фиолетовый фон
+      try {
+        tg.setHeaderColor('#05010a');
+        tg.setBackgroundColor('#05010a');
+      } catch (e) {
+        // Игнорируем ошибку, если версия Telegram клиента старая
+        console.warn('Telegram API method not supported', e);
+      }
+    }
+
     const initialize = async () => {
       const data = await fetchFortune();
       setFortuneData(data);
@@ -41,6 +64,11 @@ const App: React.FC = () => {
     // Возвращаем в IDLE немедленно, чтобы скрыть открытую карту
     setAppState(AppState.IDLE);
     
+    // Легкая вибрация Haptic Feedback при сбросе (если поддерживается)
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
+    
     if (nextFortuneData) {
       setFortuneData(nextFortuneData);
       setNextFortuneData(null);
@@ -53,6 +81,14 @@ const App: React.FC = () => {
       setAppState(AppState.IDLE);
     }
   }, [nextFortuneData]);
+
+  // Haptic Feedback при клике на колоду
+  const handleDeckClick = useCallback(() => {
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+    }
+    handleDrawCard();
+  }, [handleDrawCard]);
 
   return (
     <div className="relative w-full min-h-[100dvh] magical-bg overflow-hidden font-sans flex items-center justify-center">
@@ -75,10 +111,10 @@ const App: React.FC = () => {
              </div>
              <div className="flex flex-col items-center text-center">
                <p className="text-indigo-300 text-sm tracking-[0.3em] font-semibold uppercase shadow-indigo-500/50 drop-shadow-md mb-2">
-                 Связь с космосом...
+                 Подготовка колоды...
                </p>
                <p className="text-indigo-400/60 text-xs max-w-[220px]">
-                 Нейросеть рисует вашу уникальную карту судьбы
+                 Тасуем 500 уникальных карт вашей судьбы
                </p>
              </div>
           </div>
@@ -91,7 +127,7 @@ const App: React.FC = () => {
              <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out z-10
                ${appState === AppState.REVEALED ? 'opacity-0 scale-50 translate-y-20 pointer-events-none' : 'opacity-100 scale-100'}
              `}>
-                <TarotDeckVisual state={appState} onClick={handleDrawCard} />
+                <TarotDeckVisual state={appState} onClick={handleDeckClick} />
              </div>
 
              {/* The Revealed Card & Fortune Layer */}
