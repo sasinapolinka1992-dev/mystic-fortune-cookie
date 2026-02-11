@@ -15,7 +15,6 @@ declare global {
 export const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.INITIALLOADING);
   const [fortuneData, setFortuneData] = useState<FortuneData | null>(null);
-  const [nextFortuneData, setNextFortuneData] = useState<FortuneData | null>(null);
 
   // Initial load and Telegram Setup
   useEffect(() => {
@@ -39,13 +38,9 @@ export const App: React.FC = () => {
       const data = await fetchFortune();
       setFortuneData(data);
       setAppState(AppState.IDLE);
-      
-      // Pre-fetch next fortune quietly
-      fetchFortune().then(res => setNextFortuneData(res));
     };
 
     initialize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDrawCard = useCallback(() => {
@@ -53,7 +48,7 @@ export const App: React.FC = () => {
 
     setAppState(AppState.SHUFFLING);
 
-    // Ждем 1.2 секунды пока проигрывается анимация тасования
+    // Ждем 1.2 секунды пока проигрывается анимация тасования, затем открываем карту
     setTimeout(() => {
       setAppState(AppState.REVEALED);
     }, 1200); 
@@ -61,26 +56,18 @@ export const App: React.FC = () => {
   }, [appState]);
 
   const handleReset = useCallback(async () => {
-    // Возвращаем в IDLE немедленно, чтобы скрыть открытую карту
+    // Немедленно прячем карту и показываем колоду
     setAppState(AppState.IDLE);
     
-    // Легкая вибрация Haptic Feedback при сбросе (если поддерживается)
+    // Легкая вибрация Haptic Feedback при сбросе
     if (window.Telegram?.WebApp?.HapticFeedback) {
       window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
     }
     
-    if (nextFortuneData) {
-      setFortuneData(nextFortuneData);
-      setNextFortuneData(null);
-      // Fetch the next one for the *next* reset
-      fetchFortune().then(res => setNextFortuneData(res));
-    } else {
-      setAppState(AppState.INITIALLOADING);
-      const data = await fetchFortune();
-      setFortuneData(data);
-      setAppState(AppState.IDLE);
-    }
-  }, [nextFortuneData]);
+    // Генерируем новую карту. Пока пользователь видит колоду, данные уже обновятся!
+    const data = await fetchFortune();
+    setFortuneData(data);
+  }, []);
 
   // Haptic Feedback при клике на колоду
   const handleDeckClick = useCallback(() => {
@@ -114,7 +101,7 @@ export const App: React.FC = () => {
                  Подготовка колоды...
                </p>
                <p className="text-indigo-400/60 text-xs max-w-[220px]">
-                 Тасуем 500 уникальных карт вашей судьбы
+                 Тасуем уникальные карты вашей судьбы
                </p>
              </div>
           </div>
