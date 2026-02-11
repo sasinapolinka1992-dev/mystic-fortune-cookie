@@ -9,14 +9,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Предзагрузка шрифтов для моментального отображения без прыжков -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    
     <style>
       body {
         font-family: 'Montserrat', sans-serif;
         background-color: #05010a;
         margin: 0;
         overflow: hidden; 
-        /* Сглаживание шрифтов для предотвращения "прыжков" пикселей */
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
@@ -25,7 +28,6 @@
         font-family: 'Cormorant Garamond', serif;
       }
       
-      /* Deep Space Magical Background */
       .magical-bg {
         background: radial-gradient(circle at 50% 40%, #1e103c 0%, #0d041e 40%, #000000 100%);
         background-size: 200% 200%;
@@ -37,7 +39,6 @@
         100% { background-position: 50% 80%; }
       }
 
-      /* Float Animation */
       @keyframes float {
         0%, 100% { transform: translateY(0px) rotate(0deg); }
         50% { transform: translateY(-10px) rotate(1deg); }
@@ -46,7 +47,6 @@
         animation: float 4s ease-in-out infinite;
       }
 
-      /* Glow pulse */
       @keyframes pulse-glow {
         0%, 100% { opacity: 0.5; transform: scale(1); }
         50% { opacity: 0.9; transform: scale(1.05); }
@@ -56,7 +56,7 @@
       }
 
       /* =========================================
-         TAROT MYSTIC SPREAD ANIMATION (NEW)
+         TAROT MYSTIC SPREAD ANIMATION
          ========================================= */
       @keyframes mysticLeft {
         0%   { transform: translate(0, 0) rotate(-3deg); opacity: 1; z-index: 2; }
@@ -73,10 +73,10 @@
       }
 
       @keyframes mysticCenter {
-        0%   { transform: perspective(1000px) translate(0, 0) rotateY(0deg) scale(1); box-shadow: 0 15px 30px rgba(0,0,0,0.6); z-index: 3; }
-        30%  { transform: perspective(1000px) translate(0, -60px) rotateY(180deg) scale(1.1); box-shadow: 0 0 40px 10px rgba(212,175,55,0.4); z-index: 3; }
-        70%  { transform: perspective(1000px) translate(0, -70px) rotateY(360deg) scale(1.15); box-shadow: 0 0 70px 25px rgba(212,175,55,0.7); z-index: 3; }
-        100% { transform: perspective(1000px) translate(0, 0) rotateY(360deg) scale(1); box-shadow: 0 15px 30px rgba(0,0,0,0.6); z-index: 3; }
+        0%   { transform: perspective(1000px) translateY(0) rotateY(0deg) scale(1); box-shadow: 0 15px 30px rgba(0,0,0,0.6); z-index: 3; }
+        30%  { transform: perspective(1000px) translateY(-60px) rotateY(180deg) scale(1.1); box-shadow: 0 0 40px 10px rgba(212,175,55,0.4); z-index: 3; }
+        70%  { transform: perspective(1000px) translateY(-70px) rotateY(360deg) scale(1.15); box-shadow: 0 0 70px 25px rgba(212,175,55,0.7); z-index: 3; }
+        100% { transform: perspective(1000px) translateY(0) rotateY(360deg) scale(1); box-shadow: 0 15px 30px rgba(0,0,0,0.6); z-index: 3; }
       }
 
       .animate-mystic-left { animation: mysticLeft 1.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
@@ -84,30 +84,22 @@
       .animate-mystic-center { animation: mysticCenter 1.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
 
       /* =========================================
-         REVEAL ANIMATIONS (FLIP & FADE-UP)
+         REVEAL ANIMATIONS
          ========================================= */
       @keyframes flipIn {
         0% { transform: perspective(1000px) rotateY(90deg) scale(0.7) translateY(50px); opacity: 0; }
         100% { transform: perspective(1000px) rotateY(0deg) scale(1) translateY(0); opacity: 1; }
       }
       .animate-flip-in {
-        animation: flipIn 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-        backface-visibility: hidden;
-        -webkit-backface-visibility: hidden;
-        transform-style: preserve-3d;
-        will-change: transform, opacity;
+        animation: flipIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
       }
 
       @keyframes fadeUp {
-        0% { opacity: 0; transform: translate3d(0, 30px, 0); }
-        100% { opacity: 1; transform: translate3d(0, 0, 0); }
+        0% { opacity: 0; transform: translateY(30px); }
+        100% { opacity: 1; transform: translateY(0); }
       }
       .animate-fade-up {
-        animation: fadeUp 0.8s 0.3s ease-out both;
-        backface-visibility: hidden;
-        -webkit-backface-visibility: hidden;
-        transform-style: preserve-3d;
-        will-change: transform, opacity;
+        animation: fadeUp 0.8s 0.3s ease-out forwards;
       }
 
       /* Colors & Effects */
@@ -154,6 +146,9 @@
 </script>
 </head>
   <body>
+    <!-- Невидимый элемент: заставляет браузер скачать мистический шрифт мгновенно при загрузке страницы -->
+    <div style="font-family: 'Cormorant Garamond', serif; position: absolute; width: 0; height: 0; overflow: hidden; opacity: 0; pointer-events: none; z-index: -100;">Preload</div>
+    
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
