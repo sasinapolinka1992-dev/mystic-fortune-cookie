@@ -34,30 +34,41 @@ const TarotDeckVisual: React.FC<TarotDeckVisualProps> = ({ state, onClick }) => 
   const isIdle = state === AppState.IDLE;
   const isShuffling = state === AppState.SHUFFLING;
 
-  const baseCardStyle = "absolute top-0 left-0 w-[160px] h-[280px] rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.6)] transform origin-center transition-transform duration-300";
+  // ВАЖНО: удален transition-transform, который мешал воспроизведению @keyframes
+  const baseCardStyle = "absolute top-0 left-0 w-[160px] h-[280px] rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.6)] transform origin-center";
 
   return (
     <div 
-      className={`relative cursor-pointer w-[160px] h-[280px] ${isIdle ? 'hover:scale-105 animate-float' : ''}`}
+      className={`relative cursor-pointer w-[160px] h-[280px] transition-transform duration-300 ${isIdle ? 'hover:scale-105 animate-float' : ''}`}
       onClick={isIdle ? onClick : undefined}
+      style={{ perspective: '1000px' }}
     >
       {/* Магическое свечение вокруг колоды */}
       <div className={`absolute -inset-10 rounded-full bg-purple-600/20 blur-[60px] animate-pulse-glow transition-opacity duration-1000 ${isIdle ? 'opacity-100' : 'opacity-0'}`}></div>
 
-      {/* 3 карты для эффекта стопки и тасования */}
+      {/* 3 карты для эффекта веера и левитации */}
       
-      {/* Нижняя карта (Сдвиг влево при тасовании) */}
-      <div className={`${baseCardStyle} ${isIdle ? 'rotate-[-3deg] -translate-x-1 translate-y-1' : ''} ${isShuffling ? 'animate-shuffle-left' : ''}`}>
+      {/* Левая карта */}
+      <div 
+        className={`${baseCardStyle} ${isIdle ? 'rotate-[-3deg] -translate-x-1 translate-y-1' : ''} ${isShuffling ? 'animate-mystic-left' : ''}`}
+        style={{ transformStyle: 'preserve-3d' }}
+      >
          <CardBackSVG />
       </div>
 
-      {/* Средняя карта (Сдвиг вправо при тасовании) */}
-      <div className={`${baseCardStyle} ${isIdle ? 'rotate-[4deg] translate-x-1' : ''} ${isShuffling ? 'animate-shuffle-right' : ''}`}>
+      {/* Правая карта */}
+      <div 
+        className={`${baseCardStyle} ${isIdle ? 'rotate-[4deg] translate-x-1' : ''} ${isShuffling ? 'animate-mystic-right' : ''}`}
+        style={{ transformStyle: 'preserve-3d' }}
+      >
          <CardBackSVG />
       </div>
 
-      {/* Верхняя карта (Главная) */}
-      <div className={`${baseCardStyle} card-glow ${isIdle ? 'rotate-0' : ''} ${isShuffling ? 'animate-shuffle-center' : ''}`}>
+      {/* Верхняя/Центральная карта (Главная левитирующая) */}
+      <div 
+        className={`${baseCardStyle} card-glow ${isIdle ? 'rotate-0' : ''} ${isShuffling ? 'animate-mystic-center' : ''}`}
+        style={{ transformStyle: 'preserve-3d' }}
+      >
          <CardBackSVG />
       </div>
 
