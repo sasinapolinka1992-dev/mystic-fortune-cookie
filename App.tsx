@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-const App: React.FC = () => {
+export const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.INITIALLOADING);
   const [fortuneData, setFortuneData] = useState<FortuneData | null>(null);
   const [nextFortuneData, setNextFortuneData] = useState<FortuneData | null>(null);
@@ -148,5 +148,3 @@ const App: React.FC = () => {
     </div>
   );
 };
-
-export default App;
