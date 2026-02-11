@@ -1,71 +1,164 @@
-import React from 'react';
-import { FortuneData } from '../types';
-
-interface TarotRevealProps {
-  data: FortuneData | null;
-  isVisible: boolean;
-  onReset: () => void;
-}
-
-// Запасная мистическая иконка, если картинка не сгенерировалась
-const MysticalIcon = () => (
-  <svg viewBox="0 0 100 100" className="w-20 h-20 opacity-90 drop-shadow-md">
-    <circle cx="50" cy="50" r="45" fill="none" stroke="#b38a22" strokeWidth="1.5" strokeDasharray="5 5" />
-    <circle cx="50" cy="50" r="35" fill="none" stroke="#b38a22" strokeWidth="1" />
-    <path d="M 50 5 L 50 95 M 5 50 L 95 50" stroke="#b38a22" strokeWidth="1" />
-    <path d="M 18 18 L 82 82 M 18 82 L 82 18" stroke="#b38a22" strokeWidth="1" />
-    <circle cx="50" cy="50" r="14" fill="#d4af37" />
-    <path d="M 50 36 A 14 14 0 1 1 36 50 A 20 20 0 0 0 50 36" fill="#fcf6e8" />
-  </svg>
-);
-
-const TarotReveal: React.FC<TarotRevealProps> = ({ data, isVisible, onReset }) => {
-  if (!isVisible || !data) return null;
-
-  return (
-    <div key={data.cardName} className="absolute inset-0 z-30 flex flex-col items-center justify-center w-full px-4 pointer-events-auto" style={{ WebkitTransform: 'translateZ(0)' }}>
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Карты Таро</title>
+    <!-- Подключение скрипта Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Montserrat', sans-serif;
+        background-color: #05010a;
+        margin: 0;
+        overflow: hidden; 
+        /* Сглаживание шрифтов для предотвращения "прыжков" пикселей */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      .font-serif-custom {
+        font-family: 'Cormorant Garamond', serif;
+      }
       
-      {/* 3D-Переворот самой карты */}
-      <div className="animate-flip-in flex-shrink-0 w-[200px] h-[340px] relative rounded-xl bg-[#fdfaf2] border-[3px] border-[#d4af37] shadow-[0_20px_50px_rgba(0,0,0,0.8),_0_0_40px_rgba(212,175,55,0.3)] flex flex-col p-2 z-20 mb-6">
-         <div className="w-full h-full border border-[#b38a22] flex flex-col p-2 relative bg-[url('https://www.transparenttextures.com/patterns/aged-paper.png')]">
-             
-             {/* Область для сгенерированного изображения */}
-             <div className="flex-grow w-full relative mb-3 overflow-hidden rounded-sm border border-[#b38a22]/60 bg-[#1a0b2e] flex items-center justify-center shadow-inner">
-                {data.imageUrl ? (
-                  <img src={data.imageUrl} alt={data.cardName} className="absolute inset-0 w-full h-full object-cover" />
-                ) : (
-                  <MysticalIcon />
-                )}
-             </div>
-             
-             {/* Разделитель */}
-             <div className="w-full border-t border-[#b38a22] mb-2"></div>
-             
-             {/* Название Карты (Исправлен баг скачущего текста: убран конфликт flex и line-clamp) */}
-             <div className="w-full h-10 flex items-center justify-center px-1 overflow-hidden">
-                <span className="text-[#3a2808] font-serif-custom text-sm font-bold text-center uppercase tracking-widest leading-tight drop-shadow-sm">
-                  {data.cardName}
-                </span>
-             </div>
-         </div>
-      </div>
+      /* Deep Space Magical Background */
+      .magical-bg {
+        background: radial-gradient(circle at 50% 40%, #1e103c 0%, #0d041e 40%, #000000 100%);
+        background-size: 200% 200%;
+        animation: breathBg 20s ease-in-out infinite alternate;
+      }
 
-      {/* Выплывающее снизу предсказание */}
-      <div className="animate-fade-up w-full max-w-sm flex flex-col items-center p-6 rounded-2xl bg-[#1a0b2e]/80 border border-fuchsia-400/30 backdrop-blur-xl shadow-[0_0_40px_rgba(168,85,247,0.3)] z-10">
-         <p className="font-serif-custom text-xl md:text-2xl text-purple-50 font-semibold text-center leading-relaxed drop-shadow-md transform-gpu">
-           "{data.text}"
-         </p>
-         
-         <button 
-           onClick={onReset}
-           className="mt-6 px-8 py-3 rounded-full bg-gradient-to-r from-purple-800 via-fuchsia-700 to-purple-800 text-white font-bold text-xs tracking-widest uppercase shadow-[0_0_20px_rgba(192,132,252,0.4)] hover:shadow-[0_0_30px_rgba(217,70,239,0.7)] transition-all duration-300 hover:scale-105 active:scale-95 border border-fuchsia-300/40 transform-gpu"
-         >
-           Тянуть еще
-         </button>
-      </div>
+      @keyframes breathBg {
+        0% { background-position: 50% 20%; }
+        100% { background-position: 50% 80%; }
+      }
 
-    </div>
-  );
-};
+      /* Float Animation */
+      @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(1deg); }
+      }
+      .animate-float {
+        animation: float 4s ease-in-out infinite;
+      }
 
-export default TarotReveal;
+      /* Glow pulse */
+      @keyframes pulse-glow {
+        0%, 100% { opacity: 0.5; transform: scale(1); }
+        50% { opacity: 0.9; transform: scale(1.05); }
+      }
+      .animate-pulse-glow {
+        animation: pulse-glow 3s ease-in-out infinite;
+      }
+
+      /* =========================================
+         TAROT SHUFFLING ANIMATIONS
+         ========================================= */
+      @keyframes shuffleLeft {
+        0%   { transform: translate(0, 0) rotate(-2deg); z-index: 3; }
+        25%  { transform: translate(-80px, -15px) rotate(-10deg); z-index: 4; }
+        50%  { transform: translate(0, 5px) rotate(1deg); z-index: 1; }
+        75%  { transform: translate(-60px, -5px) rotate(-8deg); z-index: 4; }
+        100% { transform: translate(0, 0) rotate(-2deg); z-index: 3; }
+      }
+      
+      @keyframes shuffleRight {
+        0%   { transform: translate(0, 0) rotate(3deg); z-index: 2; }
+        25%  { transform: translate(80px, -5px) rotate(12deg); z-index: 1; }
+        50%  { transform: translate(0, 0) rotate(-1deg); z-index: 4; }
+        75%  { transform: translate(70px, -10px) rotate(15deg); z-index: 1; }
+        100% { transform: translate(0, 0) rotate(3deg); z-index: 2; }
+      }
+
+      @keyframes shuffleCenter {
+        0%   { transform: translate(0, 0) rotate(0deg); z-index: 1; }
+        25%  { transform: translate(10px, 10px) rotate(2deg); z-index: 2; }
+        50%  { transform: translate(-10px, -5px) rotate(-2deg); z-index: 3; }
+        75%  { transform: translate(5px, 0) rotate(1deg); z-index: 2; }
+        100% { transform: translate(0, 0) rotate(0deg); z-index: 1; }
+      }
+
+      .animate-shuffle-left { animation: shuffleLeft 1.2s ease-in-out forwards; }
+      .animate-shuffle-right { animation: shuffleRight 1.2s ease-in-out forwards; }
+      .animate-shuffle-center { animation: shuffleCenter 1.2s ease-in-out forwards; }
+
+      /* =========================================
+         REVEAL ANIMATIONS (FLIP & FADE-UP)
+         ========================================= */
+      @keyframes flipIn {
+        0% { transform: perspective(1000px) rotateY(90deg) scale(0.7) translateY(50px); opacity: 0; }
+        100% { transform: perspective(1000px) rotateY(0deg) scale(1) translateY(0); opacity: 1; }
+      }
+      .animate-flip-in {
+        animation: flipIn 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        /* Принудительное GPU-ускорение и предотвращение скачков шрифта */
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        transform-style: preserve-3d;
+        will-change: transform, opacity;
+      }
+
+      @keyframes fadeUp {
+        0% { opacity: 0; transform: translate3d(0, 30px, 0); }
+        100% { opacity: 1; transform: translate3d(0, 0, 0); }
+      }
+      .animate-fade-up {
+        animation: fadeUp 0.8s 0.3s ease-out both;
+        /* Принудительное GPU-ускорение и предотвращение скачков шрифта */
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        transform-style: preserve-3d;
+        will-change: transform, opacity;
+      }
+
+      /* Colors & Effects */
+      .card-glow {
+        box-shadow: 0 0 35px 5px rgba(212, 175, 55, 0.3), inset 0 0 20px rgba(212, 175, 55, 0.1);
+      }
+      .text-gold {
+        color: #d4af37;
+      }
+
+      /* Background Particles */
+      @keyframes twinkleRise {
+        0% { transform: translateY(10px) scale(0); opacity: 0; }
+        50% { opacity: 1; transform: translateY(-60px) scale(1); }
+        100% { transform: translateY(-120px) scale(0); opacity: 0; }
+      }
+      .mystic-particle {
+        position: absolute;
+        border-radius: 50%;
+        animation: twinkleRise infinite ease-in;
+        pointer-events: none;
+      }
+
+      @keyframes twinkleStar {
+        0%, 100% { opacity: 0.1; transform: scale(0.8); }
+        50% { opacity: 0.8; transform: scale(1.2); }
+      }
+      .star-particle {
+        position: absolute;
+        background-color: white;
+        border-radius: 50%;
+        animation: twinkleStar infinite ease-in-out;
+        pointer-events: none;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
