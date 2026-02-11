@@ -40,7 +40,7 @@ export const App: React.FC = () => {
     initialize();
   }, []);
 
-  // Безопасный вызов Haptic Feedback, не роняющий приложение при ошибках
+  // Безопасный вызов Haptic Feedback
   const triggerHaptic = useCallback((style: 'light' | 'medium' | 'heavy') => {
     try {
       window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.(style);
@@ -49,32 +49,30 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  const handleDrawCard = useCallback(() => {
-    if (appState !== AppState.IDLE) return;
-
-    setAppState(AppState.SHUFFLING);
-
-    // Ждем 1.5 секунды пока проигрывается магическая левитация, затем открываем карту
-    setTimeout(() => {
-      setAppState(AppState.REVEALED);
-    }, 1500); 
-
-  }, [appState]);
-
   const handleReset = useCallback(async () => {
     setAppState(AppState.IDLE);
     triggerHaptic('light');
     
-    // Генерируем новую карту. Пока пользователь видит колоду, данные уже обновятся!
+    // Генерируем новую карту.
     const data = await fetchFortune();
     setFortuneData(data);
   }, [triggerHaptic]);
 
+  // Абсолютно надежный хендлер: используем функцию обновления состояния, чтобы избежать stale closures
   const handleDeckClick = useCallback(() => {
-    if (appState !== AppState.IDLE) return;
     triggerHaptic('medium');
-    handleDrawCard();
-  }, [appState, triggerHaptic, handleDrawCard]);
+    
+    setAppState((prev) => {
+      // Запускаем таймер только если мы были в IDLE
+      if (prev === AppState.IDLE) {
+        setTimeout(() => {
+          setAppState(AppState.REVEALED);
+        }, 1500);
+        return AppState.SHUFFLING;
+      }
+      return prev;
+    });
+  }, [triggerHaptic]);
 
   return (
     <div className="relative w-full min-h-[100dvh] magical-bg overflow-hidden font-sans flex items-center justify-center">
