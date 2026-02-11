@@ -48,10 +48,10 @@ export const App: React.FC = () => {
 
     setAppState(AppState.SHUFFLING);
 
-    // Ждем 1.2 секунды пока проигрывается анимация тасования, затем открываем карту
+    // Ждем 1.5 секунды пока проигрывается магическая левитация, затем открываем карту
     setTimeout(() => {
       setAppState(AppState.REVEALED);
-    }, 1200); 
+    }, 1500); 
 
   }, [appState]);
 
