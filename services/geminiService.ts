@@ -1,6 +1,30 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { FortuneData } from "../types";
 
+// Темы для направления мысли нейросети, чтобы карты всегда были разными
+const MYSTIC_THEMES = [
+  "Внутренняя сила и скрытые таланты",
+  "Неожиданные перемены и новые пути",
+  "Гармония с природой и космосом",
+  "Секреты прошлого и их влияние на будущее",
+  "Любовь, тепло и человеческие связи",
+  "Преодоление страхов и иллюзий",
+  "Время, терпение и циклы жизни",
+  "Магия повседневности и знаки судьбы",
+  "Интуиция, сны и подсознание"
+];
+
+// Массив резервных карт на случай, если API не ответит
+const FALLBACK_CARDS: FortuneData[] = [
+  { cardName: "Космическое Око", text: "Доверься своей интуиции. То, что ты ищешь, уже находится внутри тебя.", imageUrl: "" },
+  { cardName: "Шепот Звезд", text: "Скоро произойдет неожиданная встреча, которая осветит твой дальнейший путь.", imageUrl: "" },
+  { cardName: "Лунная Тропа", text: "Не бойся темноты. Именно в моменты неопределенности рождаются самые яркие идеи.", imageUrl: "" },
+  { cardName: "Золотой Лотос", text: "Время расцвета близко. Сохраняй спокойствие, дыши глубоко и продолжай свой труд.", imageUrl: "" },
+  { cardName: "Песочные Часы", text: "Не торопи события. Всему свое время, и твой звездный час уже на подходе.", imageUrl: "" },
+  { cardName: "Зеркало Истины", text: "Загляни в себя без страха. Твоя главная сила скрывается там, где ты привык видеть слабость.", imageUrl: "" },
+  { cardName: "Танец Ветров", text: "Отпусти контроль. Позволь потоку жизни унести тебя туда, где ты должен быть прямо сейчас.", imageUrl: "" }
+];
+
 export const fetchFortune = async (): Promise<FortuneData> => {
   try {
     let apiKey = "";
@@ -11,17 +35,26 @@ export const fetchFortune = async (): Promise<FortuneData> => {
     }
 
     if (!apiKey) {
-      console.warn("API_KEY is missing. Returning fallback card.");
+      console.warn("API_KEY is missing. Returning random fallback card.");
       return getFallbackCard();
     }
 
     const ai = new GoogleGenAI({ apiKey });
 
+    // Выбираем случайную тему и генерируем уникальный seed, чтобы избежать кэширования и повторов
+    const randomTheme = MYSTIC_THEMES[Math.floor(Math.random() * MYSTIC_THEMES.length)];
+    const randomSeed = Math.floor(Math.random() * 1000000);
+
+    const prompt = `Ты - мистический оракул. Вытяни случайную, абсолютно уникальную карту оракула (не классическое Таро, придумай свою собственную). 
+Сфокусируй предсказание на теме: "${randomTheme}". 
+Придумай красивое мистическое название для карты на русском языке и короткое, глубокое предсказание-совет. Убедись, что эта генерация уникальна (Random Seed: ${randomSeed}).`;
+
     // 1. Просим ИИ придумать концепт карты и предсказание
     const textResponse = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: "Ты - мистический оракул. Вытяни случайную, уникальную карту оракула (не обязательно классическое Таро, придумай свою). Придумай красивое мистическое название для карты на русском языке и короткое, глубокое предсказание-совет.",
+      contents: prompt,
       config: {
+        temperature: 1.2, // Повышаем креативность и вариативность
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -55,7 +88,7 @@ export const fetchFortune = async (): Promise<FortuneData> => {
       try {
         const imageResponse = await ai.models.generateContent({
           model: 'gemini-2.5-flash-image',
-          contents: `A beautiful mystical oracle tarot card art depicting: ${imagePrompt}. Highly detailed, ethereal, magical vibe, digital painting, fantasy art style. Centered composition. No text, no words on the image.`,
+          contents: `A beautiful mystical oracle tarot card art depicting: ${imagePrompt}. Highly detailed, ethereal, magical vibe, digital painting, fantasy art style. Centered composition. No text, no words on the image. (Seed: ${randomSeed})`,
           config: {
             imageConfig: { aspectRatio: "3:4" }
           }
@@ -86,11 +119,8 @@ export const fetchFortune = async (): Promise<FortuneData> => {
   }
 };
 
-// Резервная карта, если ИИ недоступен или нет ключа
+// Резервная карта, если ИИ недоступен или нет ключа (теперь выдает случайную из списка!)
 function getFallbackCard(): FortuneData {
-  return {
-    cardName: "Космическое Око",
-    text: "Доверься своей интуиции. То, что ты ищешь, уже находится внутри тебя.",
-    imageUrl: "" // Без картинки отобразится красивая SVG-заглушка
-  };
+  const randomIndex = Math.floor(Math.random() * FALLBACK_CARDS.length);
+  return FALLBACK_CARDS[randomIndex];
 }
